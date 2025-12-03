@@ -93,22 +93,12 @@ builder.Services.AddAuthorization();
 
 // Health Checks 
 builder.Services.AddHealthChecks()
-    .AddCheck("self", () => HealthCheckResult.Healthy())
-    .AddCheck("database", () =>
-    {
-        try
-        {
-            using var scope = builder.Services.BuildServiceProvider().CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            return db.Database.CanConnect()
-                ? HealthCheckResult.Healthy()
-                : HealthCheckResult.Unhealthy("Cannot connect to DB");
-        }
-        catch (Exception ex)
-        {
-            return HealthCheckResult.Unhealthy(ex.Message);
-        }
-    });
+    .AddSqlServer(
+        connectionString: builder.Configuration.GetConnectionString("DefaultConnection"),
+        name: "sqlserver",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "db", "sql" }
+    );
 
 // Build app
 var app = builder.Build();
