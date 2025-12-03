@@ -11,11 +11,11 @@ namespace ProjectManagement.API.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly UserService _service;
+        private readonly IUserService _iuserservice;
 
-        public UserController(UserService service)
+        public UserController(IUserService _iuserservice)
         {
-            _service = service;
+            _iuserservice = _iuserservice;
         }
 
         [HttpGet]
