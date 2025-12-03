@@ -25,16 +25,22 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // OpenTelemetry (Tracing + Metrics)
 
 builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => resource
-        .AddService("ProjectManagement.Api")
-        .AddTelemetrySdk())
     .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation()
-        .AddEntityFrameworkCoreInstrumentation() 
-        .AddConsoleExporter())
+        .AddEntityFrameworkCoreInstrumentation()
+        .AddOtlpExporter(opt =>
+        {
+            opt.Endpoint = new Uri(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+        })
+    )
     .WithMetrics(metrics => metrics
         .AddAspNetCoreInstrumentation()
-        .AddConsoleExporter());
+        .AddOtlpExporter(opt =>
+        {
+            opt.Endpoint = new Uri(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+        })
+    );
+
 
 // Controllers & Swagger
 
