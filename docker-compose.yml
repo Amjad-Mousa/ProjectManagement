@@ -27,6 +27,8 @@ services:
         condition: service_healthy
       otel-collector:
         condition: service_healthy
+      aspire:
+        condition: service_healthy
     ports:
       - "5000:80"
     environment:
@@ -48,12 +50,16 @@ services:
       timeout: 5s
       retries: 5
 
-      aspire:
-  image: dotnet-aspire:latest
-  container_name: aspire
-  ports:
-    - "4317:4317" # OTLP gRPC
-
+  aspire:
+    image: dotnet-aspire:latest
+    container_name: aspire
+    ports:
+      - "4317:4317" # OTLP gRPC
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4317 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   sql-data:
