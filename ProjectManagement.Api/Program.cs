@@ -137,7 +137,7 @@ app.UseHttpsRedirection();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseExceptionHandler();
 app.MapControllers();
 
 // Health Checks endpoint
