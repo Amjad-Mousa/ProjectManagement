@@ -15,7 +15,7 @@ namespace ProjectManagement.Infrastructure.Data
 
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Project> Projects { get; set; } = null!;
-        public DbSet<Domain.Models.PTask> ProjectTasks { get; set; } = null!;
+        public DbSet<Domain.Models.PTask> Tasks { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
