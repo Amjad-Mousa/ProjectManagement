@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProjectManagement.Application.DTOs;
 using ProjectManagement.Application.Services;
 using System;
@@ -35,6 +36,7 @@ namespace ProjectManagement.API.Controllers
             return Ok(await _service.GetByUserNameAsync(username));
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateUserDto dto)
         {
@@ -42,6 +44,7 @@ namespace ProjectManagement.API.Controllers
             return Ok(created);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid id, UpdateUserDto dto)
         {
@@ -51,6 +54,7 @@ namespace ProjectManagement.API.Controllers
             return Ok(await _service.UpdateAsync(dto));
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
