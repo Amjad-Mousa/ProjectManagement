@@ -1,7 +1,9 @@
-﻿using ProjectManagement.Application.Exceptions;
-using ProjectManagement.Domain.Models;
+using ProjectManagement.Application.DTOs;
+using ProjectManagement.Application.Exceptions;
+using ProjectManagement.Application.Interfaces;
 using ProjectManagement.Domain.IRepositories;
-
+using ProjectManagement.Domain.Models;
+using AutoMapper;
 
 namespace ProjectManagement.Application.Services
 {
@@ -9,87 +11,77 @@ namespace ProjectManagement.Application.Services
     {
         private readonly ITaskRepository _taskRepository;
         private readonly UserContextService _userContext;
+        private readonly IMapper _mapper;
 
-        public TaskService(ITaskRepository taskRepository, UserContextService userContext)
+        public TaskService(ITaskRepository taskRepository, UserContextService userContext, IMapper mapper)
         {
-            _taskRepository = taskRepository;
-            _userContext = userContext;
+            _taskRepository = taskRepository ?? throw new ArgumentNullException(nameof(taskRepository));
+            _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<List<PTask>> GetAllAsync()
+        public async Task<List<TaskDto>> GetAllAsync()
         {
-            return await _taskRepository.GetAllAsync();
+            var tasks = await _taskRepository.GetAllAsync();
+            return _mapper.Map<List<TaskDto>>(tasks);
         }
 
-        public async Task<PTask> GetByIdAsync(int id)
+        public async Task<TaskDto> GetByIdAsync(int id)
         {
             var task = await _taskRepository.GetByIdAsync(id);
-
             if (task == null)
-            {
                 throw new NotFoundException("Task not found.");
-            }
 
-            return task;
+            return _mapper.Map<TaskDto>(task);
         }
 
-        public async Task<List<PTask>> GetAllByProjectAsync(Guid projectId)
+        public async Task<List<TaskDto>> GetAllByProjectAsync(Guid projectId)
         {
-            return await _taskRepository.GetAllByProjectAsync(projectId);
+            var tasks = await _taskRepository.GetAllByProjectAsync(projectId);
+            return _mapper.Map<List<TaskDto>>(tasks);
         }
 
-        public async Task<PTask> CreateAsync(Domain.Models.PTask task)
+        public async Task<TaskDto> CreateAsync(TaskDto taskDto)
         {
-            if (task.Id != 0)
-            {
+            if (taskDto.Id != 0)
                 throw new BadRequestException("New task ID must be 0.");
-            }
 
-            var projectTasks = await _taskRepository.GetAllByProjectAsync(task.ProjectId);
-
-            if (projectTasks.Exists(t => t.Name == task.Name))
-            {
+            var projectTasks = await _taskRepository.GetAllByProjectAsync(taskDto.ProjectId);
+            if (projectTasks.Exists(t => t.Name == taskDto.Name))
                 throw new BadRequestException("A task with this name already exists in this project.");
-            }
 
-            return await _taskRepository.AddAsync(task);
+            var task = _mapper.Map<PTask>(taskDto);
+            var created = await _taskRepository.AddAsync(task);
+
+            return _mapper.Map<TaskDto>(created);
         }
 
-        public async Task<PTask> UpdateAsync(PTask task)
+        public async Task<TaskDto> UpdateAsync(TaskDto taskDto)
         {
-            var existingTask = await _taskRepository.GetByIdAsync(task.Id);
-
+            var existingTask = await _taskRepository.GetByIdAsync(taskDto.Id);
             if (existingTask == null)
-            {
                 throw new NotFoundException("Task not found.");
-            }
 
-            var projectTasks = await _taskRepository.GetAllByProjectAsync(task.ProjectId);
-
-            if (projectTasks.Exists(t => t.Id != task.Id && t.Name == task.Name))
-            {
+            var projectTasks = await _taskRepository.GetAllByProjectAsync(taskDto.ProjectId);
+            if (projectTasks.Exists(t => t.Id != taskDto.Id && t.Name == taskDto.Name))
                 throw new BadRequestException("A task with this name already exists in this project.");
-            }
 
-            return await _taskRepository.UpdateAsync(task)
-                   ?? throw new BadRequestException("Failed to update task.");
+            _mapper.Map(taskDto, existingTask);
+            var updated = await _taskRepository.UpdateAsync(existingTask) 
+                          ?? throw new BadRequestException("Failed to update task.");
+
+            return _mapper.Map<TaskDto>(updated);
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
             var task = await _taskRepository.GetByIdAsync(id);
-
             if (task == null)
-            {
                 throw new NotFoundException("Task not found.");
-            }
 
             var deleted = await _taskRepository.DeleteAsync(task);
-
             if (!deleted)
-            {
                 throw new BadRequestException("Failed to delete task.");
-            }
 
             return true;
         }
