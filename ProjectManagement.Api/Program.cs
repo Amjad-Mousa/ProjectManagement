@@ -75,9 +75,6 @@ builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 
 
-// Exception Handler
-builder.Services.AddScoped<IExceptionHandler, GlobalExceptionHandler>();
-
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<UserProfile>());
 
@@ -105,7 +102,7 @@ builder.Services.AddHealthChecks()
     .AddSqlServer(
         connectionString: builder.Configuration.GetConnectionString("DefaultConnection"),
         name: "sqlserver",
-        failureStatus: HealthStatus.Unhealthy,
+        failureStatus: HealthStatus.Unhealthy,f
         tags: new[] { "db", "sql" }
     );
 
@@ -134,9 +131,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseSerilogRequestLogging();
+app.UseMiddleware<GlobalExceptionHandler>();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseExceptionHandler();
 app.MapControllers();
 
 // Health Checks endpoint
