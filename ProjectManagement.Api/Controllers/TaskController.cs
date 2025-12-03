@@ -9,11 +9,11 @@ namespace ProjectManagement.Api.Controllers
     [Route("api/[controller]")]
     public class TaskController : ControllerBase
     {
-        private readonly TaskService _taskService;
+        private readonly ITaskService _itaskService;
 
-        public TaskController(TaskService taskService)
+        public TaskController(ITaskService itaskService)
         {
-            _taskService = taskService;
+            _itaskService = itaskService;
         }
 
         [HttpGet]
