@@ -61,9 +61,9 @@ builder.Host.UseSerilog();
 
 // Application Services
 builder.Services.AddScoped<UserContextService>();
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<ProjectService>();
-builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<IUserService,UserService>();
+builder.Services.AddScoped<IProjectService,ProjectService>();
+builder.Services.AddScoped<ITaskService,TaskService>();
 builder.Services.AddScoped<IAuthService, AuthService>();    
 
 // Repositories
