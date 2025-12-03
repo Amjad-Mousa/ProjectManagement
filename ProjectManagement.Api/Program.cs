@@ -14,6 +14,8 @@ using ProjectManagement.Infrastructure.Data;
 using ProjectManagement.Infrastructure.Repositories;
 using ProjectManagement.Domain.IRepositories;
 using Serilog;
+using OpenTelemetry.Exporter;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,22 +26,22 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // OpenTelemetry (Tracing + Metrics)
 
+
 builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("ProjectManagement.Api"))
     .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation()
         .AddEntityFrameworkCoreInstrumentation()
         .AddOtlpExporter(opt =>
         {
-            opt.Endpoint = new Uri(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
-        })
-    )
+            opt.Endpoint = new Uri("http://aspire:4317"); 
+        }))
     .WithMetrics(metrics => metrics
         .AddAspNetCoreInstrumentation()
         .AddOtlpExporter(opt =>
         {
-            opt.Endpoint = new Uri(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
-        })
-    );
+            opt.Endpoint = new Uri("http://aspire:4317");
+        }));
 
 
 // Controllers & Swagger
