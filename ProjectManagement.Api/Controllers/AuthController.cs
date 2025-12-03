@@ -46,5 +46,13 @@ namespace ProjectManagement.Web.Controllers
 
             return Ok(user);
         }
+        
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync();
+            return Ok(new { Message = "Logout successful" });
+        }
     }
 }
