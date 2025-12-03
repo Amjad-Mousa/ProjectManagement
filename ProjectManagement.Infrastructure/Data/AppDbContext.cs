@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProjectManagement.Domain.Models;
 
 namespace ProjectManagement.Infrastructure.Data
@@ -9,21 +9,10 @@ namespace ProjectManagement.Infrastructure.Data
             : base(options)
         {
         }
-        public AppDbContext() { 
-        }
-
 
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Project> Projects { get; set; } = null!;
         public DbSet<Domain.Models.PTask> Tasks { get; set; } = null!;
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer("Server=localhost;Database=ProjectManagementDb;Trusted_Connection=True;MultipleActiveResultSets=true");
-            }
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
