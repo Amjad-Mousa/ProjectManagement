@@ -63,6 +63,7 @@ builder.Host.UseSerilog();
 
 // Application Services
 builder.Services.AddScoped<UserContextService>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserService,UserService>();
 builder.Services.AddScoped<IProjectService,ProjectService>();
 builder.Services.AddScoped<ITaskService,TaskService>();

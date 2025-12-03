@@ -41,22 +41,19 @@ namespace ProjectManagement.Infrastructure.Repositories
             return projects;
         }
 
-        public async Task<Project?> AddAsync(Project project)
+        public async Task<Project> AddAsync(Project project)
         {
             await _context.Projects.AddAsync(project);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Added new project with ID: {ProjectId}", project.Id);
-            return project;
+            return project; 
         }
 
-        public async Task<Project?> UpdateAsync(Project project)
+        public async Task<Project> UpdateAsync(Project project)
         {
             var existingProject = await _context.Projects.FindAsync(project.Id);
             if (existingProject == null)
-            {
-                _logger.LogWarning("Attempted to update non-existent project with ID: {ProjectId}", project.Id);
-                return null;
-            }
+                throw new Exception($"Project with ID {project.Id} not found");
 
             existingProject.Name = project.Name;
             existingProject.Description = project.Description;
@@ -65,8 +62,9 @@ namespace ProjectManagement.Infrastructure.Repositories
             _context.Projects.Update(existingProject);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Updated project with ID: {ProjectId}", project.Id);
-            return existingProject;
+            return existingProject; 
         }
+
 
         public async Task<(bool Success, string Message)> DeleteAsync(Project project)
         {
@@ -77,7 +75,7 @@ namespace ProjectManagement.Infrastructure.Repositories
                 return (false, "Project not found");
             }
 
-            var hasTasks = await _context.ProjectTasks.AnyAsync(t => t.ProjectId == project.Id);
+            var hasTasks = await _context.Tasks.AnyAsync(t => t.ProjectId == project.Id);
             if (hasTasks)
             {
                 _logger.LogWarning("Attempted to delete project with ID: {ProjectId} which has tasks.", project.Id);

@@ -7,7 +7,7 @@ using AutoMapper;
 
 namespace ProjectManagement.Application.Services
 {
-    public class TaskService
+    public class TaskService : ITaskService
     {
         private readonly ITaskRepository _taskRepository;
         private readonly UserContextService _userContext;
@@ -44,7 +44,7 @@ namespace ProjectManagement.Application.Services
         public async Task<TaskDto> CreateAsync(TaskDto taskDto)
         {
             if (taskDto.Id != 0)
-                throw new BadRequestException("New task ID must be 0.");
+                throw new BadRequestException("New task ID must be empty.");
 
             var projectTasks = await _taskRepository.GetAllByProjectAsync(taskDto.ProjectId);
             if (projectTasks.Exists(t => t.Name == taskDto.Name))
@@ -67,7 +67,7 @@ namespace ProjectManagement.Application.Services
                 throw new BadRequestException("A task with this name already exists in this project.");
 
             _mapper.Map(taskDto, existingTask);
-            var updated = await _taskRepository.UpdateAsync(existingTask) 
+            var updated = await _taskRepository.UpdateAsync(existingTask)
                           ?? throw new BadRequestException("Failed to update task.");
 
             return _mapper.Map<TaskDto>(updated);

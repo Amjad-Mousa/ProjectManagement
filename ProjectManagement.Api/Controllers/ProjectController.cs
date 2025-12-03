@@ -2,8 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProjectManagement.Application.DTOs;
 using ProjectManagement.Application.Exceptions;
-using ProjectManagement.Application.Services;
-using ProjectManagement.Domain.Models;
+using ProjectManagement.Application.Interfaces;
 
 namespace ProjectManagement.Api.Controllers
 {
@@ -11,11 +10,11 @@ namespace ProjectManagement.Api.Controllers
     [Route("api/[controller]")]
     public class ProjectController : ControllerBase
     {
-        private readonly IProjectService _iprojectService;
+        private readonly IProjectService _projectService;
 
-        public ProjectController(IProjectService iprojectService)
+        public ProjectController(IProjectService projectService)
         {
-            _iprojectService = iprojectService;
+            _projectService = projectService;
         }
 
         [HttpGet]
@@ -27,80 +26,38 @@ namespace ProjectManagement.Api.Controllers
             {
                 throw new NotFoundException("No projects found.");
             }
-            var projectDtos = projects.Select(p => new ProjectDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Status = p.Status,
-                OwnerId = p.OwnerId
-            }).ToList();
-
-            return Ok(projectDtos);
+            return Ok(projects);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ProjectDto>> GetById(Guid id)
         {
             var project = await _projectService.GetByIdAsync(id);
-            var projectDto = new ProjectDto
-            {
-                Id = project.Id,
-                Name = project.Name,
-                Description = project.Description,
-                Status = project.Status,
-                OwnerId = project.OwnerId
-            };
-            return Ok(projectDto);
+            return Ok(project);
         }
 
         [HttpGet("owner")]
         public async Task<ActionResult<List<ProjectDto>>> GetAllByOwner()
         {
             var projects = await _projectService.GetAllByOwnerAsync();
-            var projectDtos = projects.Select(p => new ProjectDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Status = p.Status,
-                OwnerId = p.OwnerId
-            }).ToList();
-
-            return Ok(projectDtos);
+            return Ok(projects);
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProjectDto>> Create([FromBody] Project project)
+        public async Task<ActionResult<ProjectDto>> Create([FromBody] ProjectDto projectDto)
         {
-            var createdProject = await _projectService.CreateAsync(project);
-            var projectDto = new ProjectDto
-            {
-                Id = createdProject.Id,
-                Name = createdProject.Name,
-                Description = createdProject.Description,
-                Status = createdProject.Status,
-                OwnerId = createdProject.OwnerId
-            };
-            return CreatedAtAction(nameof(GetById), new { id = projectDto.Id }, projectDto);
+            var createdProject = await _projectService.CreateAsync(projectDto);
+            return CreatedAtAction(nameof(GetById), new { id = createdProject.Id }, createdProject);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ProjectDto>> Update(Guid id, [FromBody] Project project)
+        public async Task<ActionResult<ProjectDto>> Update(Guid id, [FromBody] ProjectDto projectDto)
         {
-            if (id != project.Id)
+            if (id != projectDto.Id)
                 return BadRequest("Project ID mismatch.");
 
-            var updatedProject = await _projectService.UpdateAsync(project);
-            var projectDto = new ProjectDto
-            {
-                Id = updatedProject.Id,
-                Name = updatedProject.Name,
-                Description = updatedProject.Description,
-                Status = updatedProject.Status,
-                OwnerId = updatedProject.OwnerId
-            };
-            return Ok(projectDto);
+            var updatedProject = await _projectService.UpdateAsync(projectDto);
+            return Ok(updatedProject);
         }
 
         [HttpDelete("{id}")]

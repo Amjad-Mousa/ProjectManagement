@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using ProjectManagement.Application.DTOs;
 
 namespace ProjectManagement.Application.Interfaces
@@ -10,5 +13,6 @@ namespace ProjectManagement.Application.Interfaces
         Task<TaskDto> CreateAsync(TaskDto taskDto);
         Task<TaskDto> UpdateAsync(TaskDto taskDto);
         Task<bool> DeleteAsync(int id);
+
     }
 }

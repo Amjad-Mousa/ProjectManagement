@@ -4,6 +4,8 @@ using ProjectManagement.Application.DTOs;
 using ProjectManagement.Application.Services;
 using System;
 using System.Threading.Tasks;
+using ProjectManagement.Application.Interfaces;
+
 
 namespace ProjectManagement.API.Controllers
 {
@@ -11,11 +13,11 @@ namespace ProjectManagement.API.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _iuserservice;
+        private readonly IUserService _service;
 
-        public UserController(IUserService _iuserservice)
+        public UserController(IUserService service)
         {
-            _iuserservice = _iuserservice;
+            _service = service;
         }
 
         [HttpGet]

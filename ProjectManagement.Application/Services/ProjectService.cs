@@ -7,7 +7,7 @@ using AutoMapper;
 
 namespace ProjectManagement.Application.Services
 {
-    public class ProjectService
+    public class ProjectService: IProjectService
     {
         private readonly IProjectRepository _projectRepository;
         private readonly ITaskRepository _projectTaskRepository;

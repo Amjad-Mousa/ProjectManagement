@@ -3,11 +3,12 @@ using ProjectManagement.Application.DTOs;
 using ProjectManagement.Application.Exceptions;
 using ProjectManagement.Domain.Models;
 using ProjectManagement.Domain.IRepositories;
+using ProjectManagement.Application.Interfaces;
 
 
 namespace ProjectManagement.Application.Services
 {
-    public class UserService
+    public class UserService: IUserService
     {
         private readonly IUserRepository _userRepository;
         private readonly UserContextService _userContext;
