@@ -52,7 +52,7 @@ namespace ProjectManagement.Api.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync();
+            await _authService.LogoutAsync(HttpContext);
             return Ok(new { Message = "Logout successful" });
         }
     }

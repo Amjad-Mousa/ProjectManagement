@@ -62,5 +62,10 @@ namespace ProjectManagement.Application.Services
                 UserRole = user.UserRole
             };
         }
+        public async Task<UserDto> LogoutAsync(HttpContext httpContext)
+        {
+             await httpContext.SignOutAsync();
+            return new UserDto();
+        }
     }
 }
