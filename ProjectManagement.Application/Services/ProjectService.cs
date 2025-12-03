@@ -1,7 +1,9 @@
-﻿using ProjectManagement.Application.Interfaces;
-using ProjectManagement.Domain.Models;
+using ProjectManagement.Application.DTOs;
 using ProjectManagement.Application.Exceptions;
+using ProjectManagement.Application.Interfaces;
 using ProjectManagement.Domain.IRepositories;
+using ProjectManagement.Domain.Models;
+using AutoMapper;
 
 namespace ProjectManagement.Application.Services
 {
@@ -10,59 +12,67 @@ namespace ProjectManagement.Application.Services
         private readonly IProjectRepository _projectRepository;
         private readonly ITaskRepository _projectTaskRepository;
         private readonly UserContextService _userContext;
+        private readonly IMapper _mapper;
 
         public ProjectService(
             IProjectRepository projectRepository,
             ITaskRepository projectTaskRepository,
-            UserContextService userContext)
+            UserContextService userContext,
+            IMapper mapper)
         {
             _projectRepository = projectRepository ?? throw new ArgumentNullException(nameof(projectRepository));
             _projectTaskRepository = projectTaskRepository ?? throw new ArgumentNullException(nameof(projectTaskRepository));
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<List<Project>> GetAllAsync()
+        public async Task<List<ProjectDto>> GetAllAsync()
         {
-            return await _projectRepository.GetAllAsync();
+            var projects = await _projectRepository.GetAllAsync();
+            return _mapper.Map<List<ProjectDto>>(projects);
         }
 
-        public async Task<Project?> GetByIdAsync(Guid id)
+        public async Task<ProjectDto> GetByIdAsync(Guid id)
         {
             var project = await _projectRepository.GetByIdAsync(id);
             if (project == null)
                 throw new NotFoundException("Project not found.");
 
-            return project;
+            return _mapper.Map<ProjectDto>(project);
         }
 
-        public async Task<List<Project>> GetAllByOwnerAsync()
+        public async Task<List<ProjectDto>> GetAllByOwnerAsync()
         {
             var ownerId = _userContext.GetUserId();
             if (ownerId == Guid.Empty)
                 throw new UnauthorizedException("User is not authenticated.");
 
-            return await _projectRepository.GetAllByOwnerAsync(ownerId);
+            var projects = await _projectRepository.GetAllByOwnerAsync(ownerId);
+            return _mapper.Map<List<ProjectDto>>(projects);
         }
 
-        public async Task<Project> CreateAsync(Project project)
+        public async Task<ProjectDto> CreateAsync(ProjectDto projectDto)
         {
-            if (project.Id != Guid.Empty)
+            if (projectDto.Id != Guid.Empty)
                 throw new BadRequestException("New project ID should be empty.");
 
-            project.OwnerId = _userContext.GetUserId();
-            if (project.OwnerId == Guid.Empty)
+            projectDto.OwnerId = _userContext.GetUserId();
+            if (projectDto.OwnerId == Guid.Empty)
                 throw new UnauthorizedException("User is not authenticated.");
 
-            var existingProjects = await _projectRepository.GetAllByOwnerAsync(project.OwnerId);
-            if (existingProjects.Exists(p => p.Name == project.Name))
+            var existingProjects = await _projectRepository.GetAllByOwnerAsync(projectDto.OwnerId);
+            if (existingProjects.Exists(p => p.Name == projectDto.Name))
                 throw new BadRequestException("A project with this name already exists for the owner.");
 
-            return await _projectRepository.AddAsync(project);
+            var project = _mapper.Map<Project>(projectDto);
+            var created = await _projectRepository.AddAsync(project);
+
+            return _mapper.Map<ProjectDto>(created);
         }
 
-        public async Task<Project> UpdateAsync(Project project)
+        public async Task<ProjectDto> UpdateAsync(ProjectDto projectDto)
         {
-            var existingProject = await _projectRepository.GetByIdAsync(project.Id);
+            var existingProject = await _projectRepository.GetByIdAsync(projectDto.Id);
             if (existingProject == null)
                 throw new NotFoundException("Project not found.");
 
@@ -71,10 +81,13 @@ namespace ProjectManagement.Application.Services
                 throw new UnauthorizedException("You are not allowed to update this project.");
 
             var allProjects = await _projectRepository.GetAllByOwnerAsync(currentUserId);
-            if (allProjects.Exists(p => p.Id != project.Id && p.Name == project.Name))
+            if (allProjects.Exists(p => p.Id != projectDto.Id && p.Name == projectDto.Name))
                 throw new BadRequestException("A project with this name already exists for the owner.");
 
-            return await _projectRepository.UpdateAsync(project);
+            var project = _mapper.Map(projectDto, existingProject);
+            var updated = await _projectRepository.UpdateAsync(project);
+
+            return _mapper.Map<ProjectDto>(updated);
         }
 
         public async Task<bool> DeleteAsync(Guid id)
