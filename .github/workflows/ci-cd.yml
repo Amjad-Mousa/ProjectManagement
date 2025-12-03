@@ -20,7 +20,7 @@ jobs:
         options: >-
           --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Strong@Pass123 -Q 'SELECT 1'"
           --health-interval 10s
-          --health-timeout 5s
+          --health-timeout 10s
           --health-retries 20
 
     steps:
@@ -34,9 +34,10 @@ jobs:
 
       - name: Wait for SQL Server to be ready
         run: |
+          echo "Waiting for SQL Server to be ready..."
           for i in {1..30}; do
-            /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Strong@Pass123 -Q "SELECT 1" && break
-            echo "Waiting for SQL Server..."
+            /opt/mssql-tools/bin/sqlcmd -S db -U sa -P Strong@Pass123 -Q "SELECT 1" && break
+            echo "Waiting..."
             sleep 5
           done
 
