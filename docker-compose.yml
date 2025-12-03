@@ -5,25 +5,27 @@ services:
     image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: projectmanagement-db
     environment:
-      SA_PASSWORD: "Strong@Pass123"
+      SA_PASSWORD: "Strong@Pass123"   # لازم يكون قوي
       ACCEPT_EULA: "Y"
     ports:
-      - "1433:1433"
+      - "1433:1433"                  # إذا 1433 مستخدم غيّره لـ 1434
     volumes:
       - sql-data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "exit 0"]
-      interval: 30s
-      retries: 5
+      test: ["CMD-SHELL", "echo SELECT 1 | /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SA_PASSWORD"]
+      interval: 10s
+      retries: 10
 
   api:
-    image: projectmanagement-api
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: projectmanagement-api
     depends_on:
-      - db
-      - aspire
+      db:
+        condition: service_healthy
+      aspire:
+        condition: service_started
     ports:
       - "5000:80"
     environment:
