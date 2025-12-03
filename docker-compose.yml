@@ -12,14 +12,17 @@ services:
     volumes:
       - sql-data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "echo SELECT 1 | /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SA_PASSWORD"]
+      test: ["CMD-SHELL", "echo SELECT 1 | /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Strong@Pass123"]
       interval: 10s
       retries: 10
+    restart: unless-stopped
 
   api:
     build:
       context: .
       dockerfile: ProjectManagement.Api/Dockerfile
+      cache_from:
+        - projectmanagement-api:latest
     container_name: projectmanagement-api
     depends_on:
       db:
@@ -29,6 +32,7 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Server=db;Database=ProjectManagementDb;User Id=sa;Password=Strong@Pass123;TrustServerCertificate=True;"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+    restart: unless-stopped
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
@@ -39,6 +43,7 @@ services:
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     command: ["--config=/etc/otel-collector-config.yaml"]
+    restart: unless-stopped
 
 volumes:
   sql-data:

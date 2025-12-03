@@ -10,10 +10,10 @@ namespace ProjectManagement.Application.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(UserService userService, IHttpContextAccessor httpContextAccessor)
+        public AuthService(IUserService userService, IHttpContextAccessor httpContextAccessor)
         {
             _userService = userService;
             _httpContextAccessor = httpContextAccessor;

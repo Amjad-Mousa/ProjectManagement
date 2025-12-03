@@ -19,6 +19,10 @@ using OpenTelemetry.Exporter;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//Execption Handling Middleware
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 // Database
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -102,7 +106,7 @@ builder.Services.AddHealthChecks()
     .AddSqlServer(
         connectionString: builder.Configuration.GetConnectionString("DefaultConnection"),
         name: "sqlserver",
-        failureStatus: HealthStatus.Unhealthy,f
+        failureStatus: HealthStatus.Unhealthy,
         tags: new[] { "db", "sql" }
     );
 
@@ -129,9 +133,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseSerilogRequestLogging();
-app.UseMiddleware<GlobalExceptionHandler>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
