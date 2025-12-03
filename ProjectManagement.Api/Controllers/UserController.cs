@@ -9,6 +9,7 @@ using ProjectManagement.Application.Interfaces;
 
 namespace ProjectManagement.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class UserController : ControllerBase

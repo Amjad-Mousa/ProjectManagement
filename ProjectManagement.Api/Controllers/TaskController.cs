@@ -7,6 +7,7 @@ using ProjectManagement.Application.DTOs;
 
 namespace ProjectManagement.Api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class TaskController : ControllerBase
@@ -51,6 +52,7 @@ namespace ProjectManagement.Api.Controllers
             return CreatedAtAction(nameof(GetById), new { id = createdTask.Id }, createdTask);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult<TaskDto>> Update(int id, [FromBody] TaskDto taskDto)
         {
@@ -61,6 +63,7 @@ namespace ProjectManagement.Api.Controllers
             return Ok(updatedTask);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

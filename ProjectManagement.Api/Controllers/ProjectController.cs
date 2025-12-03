@@ -6,6 +6,7 @@ using ProjectManagement.Application.Interfaces;
 
 namespace ProjectManagement.Api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ProjectController : ControllerBase
@@ -50,6 +51,7 @@ namespace ProjectManagement.Api.Controllers
             return CreatedAtAction(nameof(GetById), new { id = createdProject.Id }, createdProject);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<ProjectDto>> Update(Guid id, [FromBody] ProjectDto projectDto)
         {
@@ -60,6 +62,7 @@ namespace ProjectManagement.Api.Controllers
             return Ok(updatedProject);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(Guid id)
         {
