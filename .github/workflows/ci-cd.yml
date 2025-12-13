@@ -18,7 +18,7 @@ jobs:
         ports:
           - 1433:1433
         options: >-
-          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S db -U sa -P Strong@Pass123 -Q 'SELECT 1'"
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Strong@Pass123 -Q 'SELECT 1' -C"
           --health-interval 10s
           --health-timeout 10s
           --health-retries 20
@@ -36,8 +36,11 @@ jobs:
         run: |
           echo "Waiting for SQL Server to be ready..."
           for i in {1..30}; do
-            /opt/mssql-tools/bin/sqlcmd -S db -U sa -P Strong@Pass123 -Q "SELECT 1" && break
-            echo "Waiting..."
+            if docker exec $(docker ps -q --filter "ancestor=mcr.microsoft.com/mssql/server:2019-latest") /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Strong@Pass123 -Q "SELECT 1" -C 2>/dev/null; then
+              echo "SQL Server is ready!"
+              break
+            fi
+            echo "Waiting... attempt $i"
             sleep 5
           done
 
@@ -49,12 +52,11 @@ jobs:
 
       - name: Run tests
         run: dotnet test ProjectManagement.sln --no-build --configuration Release --logger "trx;LogFileName=test_results.trx"
+        env:
+          ConnectionStrings__DefaultConnection: "Server=localhost;Database=ProjectManagementDb;User Id=sa;Password=Strong@Pass123;TrustServerCertificate=True;"
 
       - name: Publish API (optional)
         run: dotnet publish ProjectManagement.Api/ProjectManagement.Api.csproj --configuration Release --output ./publish
 
       - name: Build Docker images
-        run: docker-compose -f docker-compose.yml build
-
-      - name: Run Docker Compose (optional for integration tests)
-        run: docker-compose -f docker-compose.yml up -d
+        run: docker compose -f docker-compose.yml build api
