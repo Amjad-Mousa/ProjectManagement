@@ -36,16 +36,10 @@ builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation()
         .AddEntityFrameworkCoreInstrumentation()
-        .AddOtlpExporter(opt =>
-        {
-            opt.Endpoint = new Uri("http://aspire:4317"); 
-        }))
+        .AddOtlpExporter())
     .WithMetrics(metrics => metrics
         .AddAspNetCoreInstrumentation()
-        .AddOtlpExporter(opt =>
-        {
-            opt.Endpoint = new Uri("http://aspire:4317");
-        }));
+        .AddOtlpExporter());
 
 
 // Controllers & Swagger

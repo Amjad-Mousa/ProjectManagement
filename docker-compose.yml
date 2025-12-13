@@ -31,18 +31,16 @@ services:
       - "5000:80"
     environment:
       ConnectionStrings__DefaultConnection: "Server=db;Database=ProjectManagementDb;User Id=sa;Password=Strong@Pass123;TrustServerCertificate=True;"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://aspire-dashboard:18889"
     restart: unless-stopped
 
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
-    container_name: otel-collector
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+    container_name: aspire-dashboard
     ports:
-      - "4317:4317"
-      - "4318:4318"
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    command: ["--config=/etc/otel-collector-config.yaml"]
+      - "18888:18888"
+    environment:
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
     restart: unless-stopped
 
 volumes:
