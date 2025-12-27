@@ -10,7 +10,7 @@ on:
       - master
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,10 +28,6 @@ jobs:
       - name: Build solution
         run: dotnet build ProjectManagement.sln --no-restore --configuration Release
 
-      - name: Publish API (optional)
+      - name: Publish API
         if: github.ref == 'refs/heads/master'
         run: dotnet publish ProjectManagement.Api/ProjectManagement.Api.csproj --configuration Release --output ./publish
-
-      - name: Build Docker images
-        if: github.ref == 'refs/heads/master'
-        run: docker compose -f docker-compose.yml build api
