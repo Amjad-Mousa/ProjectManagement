@@ -28,6 +28,12 @@ jobs:
       - name: Build solution
         run: dotnet build ProjectManagement.sln --no-restore --configuration Release
 
+      - name: Test Aspire Logging
+        run: |
+          echo "Aspire logging test: info level"
+          echo "::warning::Aspire logging test: warning level"
+          echo "::error::Aspire logging test: error level"
+
       - name: Publish API
         if: github.ref == 'refs/heads/master'
         run: dotnet publish ProjectManagement.Api/ProjectManagement.Api.csproj --configuration Release --output ./publish
