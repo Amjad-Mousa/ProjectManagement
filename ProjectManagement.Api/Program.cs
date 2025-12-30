@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using OpenTelemetry.Logs;
 using ProjectManagement.Api.Middlewares;
 using ProjectManagement.Application.Interfaces;
 using ProjectManagement.Application.Mappings;
@@ -25,7 +22,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Logging.ClearProviders();
-
 builder.Logging.AddOpenTelemetry(options =>
 {
     options.IncludeScopes = true;
@@ -49,10 +45,8 @@ builder.Services.AddOpenTelemetry()
         }))
     .WithMetrics(metrics => metrics
         .AddAspNetCoreInstrumentation()
-        .AddOtlpExporter(exporterOptions =>
-        {
-            exporterOptions.Endpoint = new Uri("http://aspire-dashboard:18888");
-        }));
+        .AddHttpClientInstrumentation()
+        .AddPrometheusExporter());
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -67,7 +61,6 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 builder.Services.AddScoped<UserContextService>();
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
@@ -78,7 +71,6 @@ builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<UserProfile>());
-builder.Services.AddProblemDetails();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -98,7 +90,7 @@ builder.Services.AddHealthChecks()
     .AddSqlServer(
         connectionString: builder.Configuration.GetConnectionString("DefaultConnection"),
         name: "sqlserver",
-        failureStatus: HealthStatus.Unhealthy,
+        failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy,
         tags: new[] { "db", "sql" }
     );
 
@@ -107,14 +99,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    try
-    {
-        await dbContext.Database.MigrateAsync();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(ex.Message);
-    }
+    await dbContext.Database.MigrateAsync();
 }
 
 if (app.Environment.IsDevelopment())
@@ -149,6 +134,8 @@ app.UseHealthChecks("/health", new HealthCheckOptions
         await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(result));
     }
 });
+
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Aspire Dashboard: Test Information log");
