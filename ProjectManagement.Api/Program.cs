@@ -49,10 +49,17 @@ builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation()
         .AddEntityFrameworkCoreInstrumentation()
-        .AddOtlpExporter())
+        .AddOtlpExporter(exporterOptions =>
+        {
+            exporterOptions.Endpoint = new Uri("http://aspire-dashboard:18888");
+        }))
     .WithMetrics(metrics => metrics
         .AddAspNetCoreInstrumentation()
-        .AddOtlpExporter());
+        .AddHttpClientInstrumentation()
+        .AddOtlpExporter(exporterOptions =>
+        {
+            exporterOptions.Endpoint = new Uri("http://aspire-dashboard:18888");
+        }));
 
 // Controllers & Swagger
 builder.Services.AddControllers();
@@ -162,6 +169,11 @@ app.UseHealthChecks("/health", new HealthCheckOptions
         await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(result));
     }
 });
+
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Aspire Dashboard: Test Information log");
+logger.LogWarning("Aspire Dashboard: Test Warning log");
+logger.LogError("Aspire Dashboard: Test Error log");
 
 // Run
 app.Run();
