@@ -51,7 +51,7 @@ builder.Services.AddHttpContextAccessor();
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
-    .WriteTo.Console()
+    .WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter())
     .CreateLogger();
 builder.Host.UseSerilog();
 
