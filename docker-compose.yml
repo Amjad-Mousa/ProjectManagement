@@ -28,7 +28,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "5000:80"
+  - "18889:18889"
     environment:
       ConnectionStrings__DefaultConnection: "Server=db;Database=ProjectManagementDb;User Id=sa;Password=Strong@Pass123;TrustServerCertificate=True;"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://aspire-dashboard:18889"
