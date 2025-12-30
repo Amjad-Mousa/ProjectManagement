@@ -1,0 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using ProjectManagement.Application.DTOs;
+
+namespace ProjectManagement.Application.Interfaces
+{
+    public interface ITaskService
+    {
+        Task<List<TaskDto>> GetAllAsync();
+        Task<TaskDto> GetByIdAsync(int id);
+        Task<List<TaskDto>> GetAllByProjectAsync(Guid projectId);
+        Task<TaskDto> CreateAsync(TaskDto taskDto);
+        Task<TaskDto> UpdateAsync(TaskDto taskDto);
+        Task<bool> DeleteAsync(int id);
+
+    }
+}

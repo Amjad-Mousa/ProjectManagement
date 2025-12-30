@@ -1,0 +1,39 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+      - Dev
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ProjectManagement.sln
+
+      - name: Build solution
+        run: dotnet build ProjectManagement.sln --no-restore --configuration Release
+
+      - name: Test Aspire Logging
+        run: |
+          echo "Aspire logging test: info level"
+          echo "::warning::Aspire logging test: warning level"
+          echo "::error::Aspire logging test: error level"
+
+      - name: Publish API
+        if: github.ref == 'refs/heads/master'
+        run: dotnet publish ProjectManagement.Api/ProjectManagement.Api.csproj --configuration Release --output ./publish
