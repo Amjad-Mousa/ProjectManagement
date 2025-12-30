@@ -18,15 +18,12 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Exception Handling Middleware
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-// Database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// OpenTelemetry (Tracing + Metrics + Logging)
 builder.Logging.ClearProviders();
 
 builder.Logging.AddOpenTelemetry(options =>
@@ -34,10 +31,7 @@ builder.Logging.AddOpenTelemetry(options =>
     options.IncludeScopes = true;
     options.IncludeFormattedMessage = true;
     options.ParseStateValues = true;
-
     options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ProjectManagement.Api"));
-
-    // OTLP Exporter
     options.AddOtlpExporter(exporterOptions =>
     {
         exporterOptions.Endpoint = new Uri("http://aspire-dashboard:18888");
@@ -55,19 +49,16 @@ builder.Services.AddOpenTelemetry()
         }))
     .WithMetrics(metrics => metrics
         .AddAspNetCoreInstrumentation()
-        .AddHttpClientInstrumentation()
         .AddOtlpExporter(exporterOptions =>
         {
             exporterOptions.Endpoint = new Uri("http://aspire-dashboard:18888");
         }));
 
-// Controllers & Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
 
-// Serilog Configuration
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -75,7 +66,6 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 builder.Host.UseSerilog();
 
-// Application Services
 builder.Services.AddScoped<UserContextService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -83,18 +73,13 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 
-// AutoMapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<UserProfile>());
-
-// ProblemDetails
 builder.Services.AddProblemDetails();
 
-// Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -107,10 +92,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SameSite = SameSiteMode.Strict;
     });
 
-// Authorization
 builder.Services.AddAuthorization();
 
-// Health Checks
 builder.Services.AddHealthChecks()
     .AddSqlServer(
         connectionString: builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -119,7 +102,6 @@ builder.Services.AddHealthChecks()
         tags: new[] { "db", "sql" }
     );
 
-// Build app
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -135,7 +117,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -149,7 +130,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Health Checks endpoint
 app.UseHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = async (context, report) =>
@@ -175,5 +155,4 @@ logger.LogInformation("Aspire Dashboard: Test Information log");
 logger.LogWarning("Aspire Dashboard: Test Warning log");
 logger.LogError("Aspire Dashboard: Test Error log");
 
-// Run
 app.Run();
