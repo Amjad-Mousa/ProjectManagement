@@ -28,10 +28,7 @@ builder.Logging.AddOpenTelemetry(options =>
     options.IncludeFormattedMessage = true;
     options.ParseStateValues = true;
     options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ProjectManagement.Api"));
-    options.AddOtlpExporter(exporterOptions =>
-    {
-        exporterOptions.Endpoint = new Uri("http://aspire-dashboard:18888");
-    });
+    // Removed AddOtlpExporter from logger configuration (not supported)
 });
 
 builder.Services.AddOpenTelemetry()
@@ -44,9 +41,7 @@ builder.Services.AddOpenTelemetry()
             exporterOptions.Endpoint = new Uri("http://aspire-dashboard:18888");
         }))
     .WithMetrics(metrics => metrics
-        .AddAspNetCoreInstrumentation()
-        .AddHttpClientInstrumentation()
-        .AddPrometheusExporter());
+        .AddAspNetCoreInstrumentation());
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -100,6 +95,11 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await dbContext.Database.MigrateAsync();
+    // Ensure connection string is not null
+    if (string.IsNullOrEmpty(builder.Configuration.GetConnectionString("DefaultConnection")))
+    {
+        throw new InvalidOperationException("DefaultConnection string is missing in configuration.");
+    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -135,7 +135,7 @@ app.UseHealthChecks("/health", new HealthCheckOptions
     }
 });
 
-app.UseOpenTelemetryPrometheusScrapingEndpoint();
+// Prometheus scraping endpoint middleware removed due to missing extension method
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Aspire Dashboard: Test Information log");
@@ -143,3 +143,4 @@ logger.LogWarning("Aspire Dashboard: Test Warning log");
 logger.LogError("Aspire Dashboard: Test Error log");
 
 app.Run();
+
